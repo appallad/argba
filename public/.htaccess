@@ -1,0 +1,16 @@
+<IfModule mod_rewrite.c>
+
+        Options -MultiViews
+
+        RewriteEngine On
+        #RewriteBase /path/to/app
+
+        RewriteRule ^cms/(.*) cms/$1 [L]
+        RewriteRule ^board/(.*) board/$1 [L]
+        RewriteRule ^shop/(.*) shop/$1 [L]
+
+        #RewriteRule
+        RewriteCond %{REQUEST_FILENAME} !-f
+        RewriteRule ^(.*)$ index.php [QSA,L]
+
+</IfModule>
