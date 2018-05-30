@@ -36,6 +36,7 @@ header_column1   header_column2   header_column3
                       promo
 
 content                                sidebar [stiky menu]
+_________________________________      ____________________
                                     |  News
                                     |  Events
                                     |  Products
