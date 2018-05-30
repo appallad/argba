@@ -16,8 +16,8 @@ Profiles:
 
             Article: [image, body, imageset, article_tags, disqus, owner]
             Page: [body, owner]
-            Blog: [image, body, imageset,blog_tags, disqus, owner]
-            News: [image, body, imageset,news_tags, disqus, owner]
+            Blog: [image, body, imageset, blog_tags, disqus, owner]
+            News: [image, body, imageset, news_tags, disqus, owner]
             Event: [date, image, body, imageset, event_tags, disqus, owner]
             Product: [price, image, body, imageset, product_tags, disqus, owner]
             Service: [price, image, body, imageset, service_tags, disqus, owner]
