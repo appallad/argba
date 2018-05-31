@@ -2,7 +2,6 @@
 project for testing
 
 # ARGBA concept
-***
 
 ## Content
 ```
@@ -26,7 +25,6 @@ Profiles:
 ```
 
 ## Page Template
-***
 
 ```
 LOGO                                Social links
@@ -50,4 +48,3 @@ bottom_column1   bottom_column2    bottom_column3
 footer_column1   footer_column2    footer_column3
                    contact
 ```
-***
