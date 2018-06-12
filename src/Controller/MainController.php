@@ -21,9 +21,6 @@ class MainController extends Controller
     {
         $number = mt_rand(0, 144);
 
-        $nodes = $conn->fetchAll('SELECT * FROM node_field_data WHERE langcode = "uk" LIMIT 12');
-        $aliases = $conn->fetchAll('SELECT * FROM url_alias LIMIT 20');
-
         $homeUrl = "/project/argba"; // url of the main profile in CMS DB
 
         $homeNode = $conn->fetchAssoc("SELECT source FROM url_alias WHERE alias =  '".$homeUrl."'");
@@ -55,15 +52,35 @@ class MainController extends Controller
          ON node__field_image.field_image_target_id = file_managed.fid
          WHERE node__field_image.entity_id = "'.$homeId.'"
          AND node__field_image.langcode = "uk"');
-
+        
+        $qbProfile = $conn->createQueryBuilder();
+        $qbProfile->select('DISTINCT node.title, body.body_value, contact.field_contact_value,
+        header.field_header_value,  promo.field_promo_value, footer.field_footer_value')
+             ->from('node_field_data', 'node')
+             ->leftJoin('node','node__body','body','node.nid = body.entity_id')
+             ->leftJoin('node','node__field_contact','contact','node.nid = contact.entity_id')
+             ->leftJoin('node','node__field_header','header','node.nid = header.entity_id')
+             ->leftJoin('node','node__field_promo','promo','node.nid = promo.entity_id')
+             ->leftJoin('node','node__field_footer','footer','node.nid = footer.entity_id')
+             ->where('node.nid = ?')
+             ->andWhere('body.langcode = ?')
+             ->andWhere('contact.langcode = ?')
+             ->andWhere('header.langcode = ?')
+             ->andWhere('promo.langcode = ?')
+             ->andWhere('footer.langcode = ?')
+             ->setParameter(0, $homeId)
+             ->setParameter(1, 'uk')
+             ->setParameter(2, 'uk')
+             ->setParameter(3, 'uk')
+             ->setParameter(4, 'uk')
+             ->setParameter(5, 'uk');
+        $profileData = $qbProfile->execute()->fetchAll();
 
         return $this->render('main/index.html.twig', array(
             'number' => $number,
-            'nodes' => $nodes,
-            'aliases' => $aliases,
-            'home_id' => $homeId,
             'home_imageset' => $homeImageset,
             'profile_image' => $profileImage,
+            'profile_data'  => $profileData[0],
         ));
 
     }
