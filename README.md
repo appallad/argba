@@ -2,14 +2,23 @@
 project for testing
 
 # ARGBA concept
+***
 
 ## Content
 ```
 Profiles:
 
-    Company: [company_logo, body, contact, imageset, company_tags, facebook, twitter, googleplus]
-    Project: [project_image, body, contact, imageset, project_tags, facebook, twitter, googleplus]
-    Person: [person_photo, body, contact, imageset, person_tags, facebook, twitter, googleplus]
+    Company: [company_logo, body, contact, header, promo, footer, imageset, company_tags,
+    facebook, twitter, googleplus, css]
+
+    Project: [project_image, body, contact, header, promo, footer, imageset, project_tags,
+    facebook, twitter, googleplus, css]
+
+    Person: [person_photo, body, contact, header, promo, footer, imageset, person_tags,
+    facebook, twitter, googleplus, css]
+
+    Community: [community_image, body, contact, header, promo, footer, imageset, community_tags,
+    facebook, twitter, googleplus, css]
 
         May Have Profile Materials:
 
@@ -25,13 +34,17 @@ Profiles:
 ```
 
 ## Page Template
+***
 
 ```
 LOGO                                Social links
 
-header_column1   header_column2   header_column3
-  top_column1      top_column2     top_column3
-                      promo
+************************************************************
+|                        header                            |
+************************************************************
+************************************************************
+|                        promo                             |
+************************************************************
 
 content                                sidebar [stiky menu]
 _________________________________      ____________________
@@ -43,8 +56,9 @@ _________________________________      ____________________
                                     |  Articles
                                     |  Landing
                                     |  Jobs
-
-bottom_column1   bottom_column2    bottom_column3
-footer_column1   footer_column2    footer_column3
-                   contact
+************************************************************
+|                        footer                            |
+************************************************************
+                   contact & copyright
 ```
+***
