@@ -75,12 +75,20 @@ class MainController extends Controller
              ->setParameter(4, 'uk')
              ->setParameter(5, 'uk');
         $profileData = $qbProfile->execute()->fetchAll();
+        
+        // select Node Types and Count them
+        $typeCount = $conn->fetchAll("SELECT type, COUNT(*) as count FROM node_field_data WHERE langcode = 'uk' GROUP BY type ");
+        $typeCountArray = array();
+        foreach ($typeCount as $type) {
+            $typeCountArray[$type['type']] = $type['count'];
+        }
 
         return $this->render('main/index.html.twig', array(
             'number' => $number,
             'home_imageset' => $homeImageset,
             'profile_image' => $profileImage,
             'profile_data'  => $profileData[0],
+            'type_count_array' => $typeCountArray,
         ));
 
     }
