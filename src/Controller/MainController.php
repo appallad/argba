@@ -1,95 +1,222 @@
 <?php
-
 // src/Controller/MainController.php
+
 namespace App\Controller;
 
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Filesystem\Exception\IOExceptionInterface;
 use Doctrine\DBAL\Driver\Connection;
 
-class MainController extends Controller
-{
+class MainController extends AbstractController
 
+{
     /**
      * @Route("/", name="homepage")
      */
-
     public function homepage(Connection $conn)
     {
-        $number = mt_rand(0, 144);
+        $profileUrl = "/project/argba"; // url of the main profile in CMS DB
+        $profileNode = $conn->fetchAssoc("SELECT source FROM url_alias WHERE alias =  '".$profileUrl."'");
+        $profileId = str_replace('/node/', "", $profileNode['source']); // id of the main profile in CMS DB
 
-        $homeUrl = "/project/argba"; // url of the main profile in CMS DB
+        $queryProfileMaterialsTypeCount = $conn->fetchAll("SELECT bundle, COUNT(*) as count FROM node__field_owner WHERE field_owner_target_id = '".$profileId."' AND langcode = 'uk' GROUP BY bundle ");
 
-        $homeNode = $conn->fetchAssoc("SELECT source FROM url_alias WHERE alias =  '".$homeUrl."'");
-
-        $homeId = str_replace('/node/', "", $homeNode['source']); // id of the main profile in CMS DB
-        
-        $homeImageset = $conn->fetchAll('SELECT DISTINCT
-         node__field_imageset.field_imageset_target_id AS image_id,
-         node__field_imageset.delta AS delta,
-         node__field_imageset.field_imageset_title AS image_title,
-         node__field_imageset.field_imageset_alt AS image_alt,
-         file_managed.filename AS filename,
-         file_managed.uri AS uri
-         FROM node__field_imageset
-         LEFT JOIN file_managed
-         ON node__field_imageset.field_imageset_target_id = file_managed.fid
-         WHERE node__field_imageset.entity_id = "'.$homeId.'"
-         AND node__field_imageset.langcode = "uk"
-         ORDER BY delta ASC');
-
-        $profileImage = $conn->fetchAssoc('SELECT
-         node__field_image.field_image_target_id AS image_id,
-         node__field_image.field_image_title AS image_title,
-         node__field_image.field_image_alt AS image_alt,
-         file_managed.filename AS filename,
-         file_managed.uri AS uri
-         FROM node__field_image
-         LEFT JOIN file_managed
-         ON node__field_image.field_image_target_id = file_managed.fid
-         WHERE node__field_image.entity_id = "'.$homeId.'"
-         AND node__field_image.langcode = "uk"');
-        
-        $qbProfile = $conn->createQueryBuilder();
-        $qbProfile->select('DISTINCT node.title, body.body_value, contact.field_contact_value,
-        header.field_header_value,  promo.field_promo_value, footer.field_footer_value')
-             ->from('node_field_data', 'node')
-             ->leftJoin('node','node__body','body','node.nid = body.entity_id')
-             ->leftJoin('node','node__field_contact','contact','node.nid = contact.entity_id')
-             ->leftJoin('node','node__field_header','header','node.nid = header.entity_id')
-             ->leftJoin('node','node__field_promo','promo','node.nid = promo.entity_id')
-             ->leftJoin('node','node__field_footer','footer','node.nid = footer.entity_id')
-             ->where('node.nid = ?')
-             ->andWhere('body.langcode = ?')
-             ->andWhere('contact.langcode = ?')
-             ->andWhere('header.langcode = ?')
-             ->andWhere('promo.langcode = ?')
-             ->andWhere('footer.langcode = ?')
-             ->setParameter(0, $homeId)
-             ->setParameter(1, 'uk')
-             ->setParameter(2, 'uk')
-             ->setParameter(3, 'uk')
-             ->setParameter(4, 'uk')
-             ->setParameter(5, 'uk');
-        $profileData = $qbProfile->execute()->fetchAll();
-        
-        // select Node Types and Count them
-        $typeCount = $conn->fetchAll("SELECT type, COUNT(*) as count FROM node_field_data WHERE langcode = 'uk' GROUP BY type ");
-        $typeCountArray = array();
-        foreach ($typeCount as $type) {
-            $typeCountArray[$type['type']] = $type['count'];
+        $profileMaterialsTypeCount = array();
+        foreach ($queryProfileMaterialsTypeCount as $type) {
+            $profileMaterialsTypeCount[$type['bundle']] = $type['count'];
         }
 
-        return $this->render('main/index.html.twig', array(
-            'number' => $number,
-            'home_imageset' => $homeImageset,
-            'profile_image' => $profileImage,
-            'profile_data'  => $profileData[0],
-            'type_count_array' => $typeCountArray,
-        ));
+        $profileLang = "uk";
 
+        $profileData = $conn->fetchAssoc('SELECT
+         node_field_data.title AS title,
+         node_field_data.langcode AS langcode,
+         node_field_data.status AS status,
+         node__body.body_value AS body_value,
+         node__body.body_summary AS body_summary,
+         node__field_contact.field_contact_value AS field_contact_value,
+         node__field_facebook.field_facebook_uri AS facebook_uri,
+         node__field_facebook.field_facebook_title AS facebook_title,
+         node__field_twitter.field_twitter_uri AS twitter_uri,
+         node__field_twitter.field_twitter_title AS twitter_title,
+         node__field_youtube.field_youtube_uri AS youtube_uri,
+         node__field_youtube.field_youtube_title AS youtube_title,
+         node__field_instagram.field_instagram_uri AS instagram_uri,
+         node__field_instagram.field_instagram_title AS instagram_title,
+         node__field_github.field_github_uri AS github_uri,
+         node__field_github.field_github_title AS github_title,
+         node__field_website.field_website_uri AS website_uri,
+         node__field_website.field_website_title AS website_title,
+         node__field_text_color.field_text_color_value AS text_color_value,
+         node__field_image.field_image_title AS image_title,
+         node__field_image.field_image_alt AS image_alt,
+         file_managed.uri AS image_uri
+         FROM node_field_data
+         LEFT JOIN node__body
+         ON node_field_data.nid = node__body.entity_id AND node__body.langcode = "'.$profileLang.'"
+         LEFT JOIN node__field_contact
+         ON node_field_data.nid = node__field_contact.entity_id AND node__field_contact.langcode = "'.$profileLang.'"
+         LEFT JOIN node__field_facebook
+         ON node_field_data.nid = node__field_facebook.entity_id AND node__field_facebook.langcode = "'.$profileLang.'"
+         LEFT JOIN node__field_twitter
+         ON node_field_data.nid = node__field_twitter.entity_id AND node__field_twitter.langcode = "'.$profileLang.'"
+         LEFT JOIN node__field_youtube
+         ON node_field_data.nid = node__field_youtube.entity_id AND node__field_youtube.langcode = "'.$profileLang.'"
+         LEFT JOIN node__field_instagram
+         ON node_field_data.nid = node__field_instagram.entity_id AND node__field_instagram.langcode = "'.$profileLang.'"
+         LEFT JOIN node__field_github
+         ON node_field_data.nid = node__field_github.entity_id AND node__field_github.langcode = "'.$profileLang.'"
+         LEFT JOIN node__field_website
+         ON node_field_data.nid = node__field_website.entity_id AND node__field_website.langcode = "'.$profileLang.'"
+         LEFT JOIN node__field_text_color
+         ON node_field_data.nid = node__field_text_color.entity_id
+         LEFT JOIN node__field_image
+         ON node_field_data.nid = node__field_image.entity_id AND node__field_image.langcode = "'.$profileLang.'"
+         LEFT JOIN file_managed
+         ON node__field_image.field_image_target_id = file_managed.fid
+
+         WHERE node_field_data.nid = ?
+         AND node_field_data.langcode = ?
+         ', array($profileId, $profileLang));
+
+        $profileBg = $conn->fetchAssoc('SELECT
+         node__field_background.field_background_target_id AS image_id,
+         file_managed.filename AS filename,
+         file_managed.uri AS uri
+         FROM node__field_background
+         LEFT JOIN file_managed
+         ON node__field_background.field_background_target_id = file_managed.fid
+         WHERE node__field_background.entity_id = "'.$profileId.'"
+         AND node__field_background.langcode = "uk"');
+
+        $profileSlide = $conn->fetchAll('SELECT DISTINCT
+         node__field_slide.field_slide_target_id AS slide_id,
+         node__field_slide.delta AS delta,
+         node__field_slide.field_slide_title AS slide_title,
+         node__field_slide.field_slide_alt AS slide_alt,
+         file_managed.filename AS filename,
+         file_managed.uri AS uri
+         FROM node__field_slide
+         LEFT JOIN file_managed
+         ON node__field_slide.field_slide_target_id = file_managed.fid
+         WHERE node__field_slide.entity_id = "'.$profileId.'"
+         AND node__field_slide.langcode = "uk"
+         ORDER BY delta ASC');
+
+         return $this->render('test/index.html.twig', array(
+            'profile_data' => $profileData,
+            'profile_url' => $profileUrl,
+            'profile_slide' => $profileSlide,
+            'profile_background' => $profileBg,
+            'profile_materials_type_count' => $profileMaterialsTypeCount,
+        ));
+    }
+
+    /**
+     * @Route("/{profile}/{profileName}", name="profile")
+     */
+    public function profile(Connection $conn, $profile, $profileName)
+    {
+        $profileUrl = "/".$profile."/".$profileName; // url of the main profile in CMS DB
+        $profileNode = $conn->fetchAssoc("SELECT source FROM url_alias WHERE alias =  '".$profileUrl."'");
+        $profileId = str_replace('/node/', "", $profileNode['source']); // id of the profile in CMS DB
+
+        $queryProfileMaterialsTypeCount = $conn->fetchAll("SELECT bundle, COUNT(*) as count FROM node__field_owner WHERE field_owner_target_id = '".$profileId."' AND langcode = 'uk' GROUP BY bundle ");
+
+        $profileMaterialsTypeCount = array();
+        foreach ($queryProfileMaterialsTypeCount as $type) {
+            $profileMaterialsTypeCount[$type['bundle']] = $type['count'];
+        }
+
+        $profileLang = "uk";
+
+        $profileData = $conn->fetchAssoc('SELECT
+         node_field_data.title AS title,
+         node_field_data.langcode AS langcode,
+         node_field_data.status AS status,
+         node__body.body_value AS body_value,
+         node__body.body_summary AS body_summary,
+         node__field_contact.field_contact_value AS field_contact_value,
+         node__field_facebook.field_facebook_uri AS facebook_uri,
+         node__field_facebook.field_facebook_title AS facebook_title,
+         node__field_twitter.field_twitter_uri AS twitter_uri,
+         node__field_twitter.field_twitter_title AS twitter_title,
+         node__field_youtube.field_youtube_uri AS youtube_uri,
+         node__field_youtube.field_youtube_title AS youtube_title,
+         node__field_instagram.field_instagram_uri AS instagram_uri,
+         node__field_instagram.field_instagram_title AS instagram_title,
+         node__field_github.field_github_uri AS github_uri,
+         node__field_github.field_github_title AS github_title,
+         node__field_website.field_website_uri AS website_uri,
+         node__field_website.field_website_title AS website_title,
+         node__field_text_color.field_text_color_value AS text_color_value,
+         node__field_image.field_image_title AS image_title,
+         node__field_image.field_image_alt AS image_alt,
+         file_managed.uri AS image_uri
+         FROM node_field_data
+         LEFT JOIN node__body
+         ON node_field_data.nid = node__body.entity_id AND node__body.langcode = "'.$profileLang.'"
+         LEFT JOIN node__field_contact
+         ON node_field_data.nid = node__field_contact.entity_id AND node__field_contact.langcode = "'.$profileLang.'"
+         LEFT JOIN node__field_facebook
+         ON node_field_data.nid = node__field_facebook.entity_id AND node__field_facebook.langcode = "'.$profileLang.'"
+         LEFT JOIN node__field_twitter
+         ON node_field_data.nid = node__field_twitter.entity_id AND node__field_twitter.langcode = "'.$profileLang.'"
+         LEFT JOIN node__field_youtube
+         ON node_field_data.nid = node__field_youtube.entity_id AND node__field_youtube.langcode = "'.$profileLang.'"
+         LEFT JOIN node__field_instagram
+         ON node_field_data.nid = node__field_instagram.entity_id AND node__field_instagram.langcode = "'.$profileLang.'"
+         LEFT JOIN node__field_github
+         ON node_field_data.nid = node__field_github.entity_id AND node__field_github.langcode = "'.$profileLang.'"
+         LEFT JOIN node__field_website
+         ON node_field_data.nid = node__field_website.entity_id AND node__field_website.langcode = "'.$profileLang.'"
+         LEFT JOIN node__field_text_color
+         ON node_field_data.nid = node__field_text_color.entity_id
+         LEFT JOIN node__field_image
+         ON node_field_data.nid = node__field_image.entity_id AND node__field_image.langcode = "'.$profileLang.'"
+         LEFT JOIN file_managed
+         ON node__field_image.field_image_target_id = file_managed.fid
+
+         WHERE node_field_data.nid = ?
+         AND node_field_data.langcode = ?
+         ', array($profileId, $profileLang));
+
+        $profileBg = $conn->fetchAssoc('SELECT
+         node__field_background.field_background_target_id AS image_id,
+         file_managed.filename AS filename,
+         file_managed.uri AS uri
+         FROM node__field_background
+         LEFT JOIN file_managed
+         ON node__field_background.field_background_target_id = file_managed.fid
+         WHERE node__field_background.entity_id = "'.$profileId.'"
+         AND node__field_background.langcode = "uk"');
+
+        $profileSlide = $conn->fetchAll('SELECT DISTINCT
+         node__field_slide.field_slide_target_id AS slide_id,
+         node__field_slide.delta AS delta,
+         node__field_slide.field_slide_title AS slide_title,
+         node__field_slide.field_slide_alt AS slide_alt,
+         file_managed.filename AS filename,
+         file_managed.uri AS uri
+         FROM node__field_slide
+         LEFT JOIN file_managed
+         ON node__field_slide.field_slide_target_id = file_managed.fid
+         WHERE node__field_slide.entity_id = "'.$profileId.'"
+         AND node__field_slide.langcode = "uk"
+         ORDER BY delta ASC');
+
+       //var_dump($profileMaterialsTypeCount);
+       //var_dump($profileData);
+
+        return $this->render('test/index.html.twig', array(
+            'profile_data' => $profileData,
+            'profile_url' => $profileUrl,
+            'profile_slide' => $profileSlide,
+            'profile_background' => $profileBg,
+            'profile_materials_type_count' => $profileMaterialsTypeCount,
+        ));
     }
 }
