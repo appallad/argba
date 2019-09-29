@@ -19,17 +19,22 @@ class MainController extends AbstractController
     public function homepage(Connection $conn)
     {
         $profileUrl = "/project/argba"; // url of the main profile in CMS DB
+
+        $profileLang = "uk";
+        
         $profileNode = $conn->fetchAssoc("SELECT source FROM url_alias WHERE alias =  '".$profileUrl."'");
         $profileId = str_replace('/node/', "", $profileNode['source']); // id of the main profile in CMS DB
 
-        $queryProfileMaterialsTypeCount = $conn->fetchAll("SELECT bundle, COUNT(*) as count FROM node__field_owner WHERE field_owner_target_id = '".$profileId."' AND langcode = 'uk' GROUP BY bundle ");
+        $queryProfileMaterialsTypeCount = $conn->fetchAll("SELECT bundle, COUNT(*) as count FROM node__field_owner WHERE field_owner_target_id = ?
+            AND langcode = ?
+            GROUP BY bundle ",
+            array($profileId, $profileLang)
+        );
 
         $profileMaterialsTypeCount = array();
         foreach ($queryProfileMaterialsTypeCount as $type) {
             $profileMaterialsTypeCount[$type['bundle']] = $type['count'];
         }
-
-        $profileLang = "uk";
 
         $profileData = $conn->fetchAssoc('SELECT
          node_field_data.title AS title,
@@ -56,31 +61,32 @@ class MainController extends AbstractController
          file_managed.uri AS image_uri
          FROM node_field_data
          LEFT JOIN node__body
-         ON node_field_data.nid = node__body.entity_id AND node__body.langcode = "'.$profileLang.'"
+         ON node_field_data.nid = node__body.entity_id AND node__body.langcode = ?
          LEFT JOIN node__field_contact
-         ON node_field_data.nid = node__field_contact.entity_id AND node__field_contact.langcode = "'.$profileLang.'"
+         ON node_field_data.nid = node__field_contact.entity_id AND node__field_contact.langcode = ?
          LEFT JOIN node__field_facebook
-         ON node_field_data.nid = node__field_facebook.entity_id AND node__field_facebook.langcode = "'.$profileLang.'"
+         ON node_field_data.nid = node__field_facebook.entity_id AND node__field_facebook.langcode = ?
          LEFT JOIN node__field_twitter
-         ON node_field_data.nid = node__field_twitter.entity_id AND node__field_twitter.langcode = "'.$profileLang.'"
+         ON node_field_data.nid = node__field_twitter.entity_id AND node__field_twitter.langcode = ?
          LEFT JOIN node__field_youtube
-         ON node_field_data.nid = node__field_youtube.entity_id AND node__field_youtube.langcode = "'.$profileLang.'"
+         ON node_field_data.nid = node__field_youtube.entity_id AND node__field_youtube.langcode = ?
          LEFT JOIN node__field_instagram
-         ON node_field_data.nid = node__field_instagram.entity_id AND node__field_instagram.langcode = "'.$profileLang.'"
+         ON node_field_data.nid = node__field_instagram.entity_id AND node__field_instagram.langcode = ?
          LEFT JOIN node__field_github
-         ON node_field_data.nid = node__field_github.entity_id AND node__field_github.langcode = "'.$profileLang.'"
+         ON node_field_data.nid = node__field_github.entity_id AND node__field_github.langcode = ?
          LEFT JOIN node__field_website
-         ON node_field_data.nid = node__field_website.entity_id AND node__field_website.langcode = "'.$profileLang.'"
+         ON node_field_data.nid = node__field_website.entity_id AND node__field_website.langcode = ?
          LEFT JOIN node__field_text_color
          ON node_field_data.nid = node__field_text_color.entity_id
          LEFT JOIN node__field_image
-         ON node_field_data.nid = node__field_image.entity_id AND node__field_image.langcode = "'.$profileLang.'"
+         ON node_field_data.nid = node__field_image.entity_id AND node__field_image.langcode = ?
          LEFT JOIN file_managed
          ON node__field_image.field_image_target_id = file_managed.fid
 
          WHERE node_field_data.nid = ?
-         AND node_field_data.langcode = ?
-         ', array($profileId, $profileLang));
+         AND node_field_data.langcode = ?',
+         array($profileLang, $profileLang, $profileLang, $profileLang, $profileLang, $profileLang, $profileLang, $profileLang, $profileLang, $profileId, $profileLang)
+        );
 
         $profileBg = $conn->fetchAssoc('SELECT
          node__field_background.field_background_target_id AS image_id,
@@ -89,8 +95,10 @@ class MainController extends AbstractController
          FROM node__field_background
          LEFT JOIN file_managed
          ON node__field_background.field_background_target_id = file_managed.fid
-         WHERE node__field_background.entity_id = "'.$profileId.'"
-         AND node__field_background.langcode = "uk"');
+         WHERE node__field_background.entity_id = ?
+         AND node__field_background.langcode = ?',
+         array($profileId, $profileLang)         
+        );
 
         $profileSlide = $conn->fetchAll('SELECT DISTINCT
          node__field_slide.field_slide_target_id AS slide_id,
@@ -102,9 +110,11 @@ class MainController extends AbstractController
          FROM node__field_slide
          LEFT JOIN file_managed
          ON node__field_slide.field_slide_target_id = file_managed.fid
-         WHERE node__field_slide.entity_id = "'.$profileId.'"
-         AND node__field_slide.langcode = "uk"
-         ORDER BY delta ASC');
+         WHERE node__field_slide.entity_id = ?
+         AND node__field_slide.langcode = ?
+         ORDER BY delta ASC',
+         array($profileId, $profileLang)
+        );
 
          return $this->render('test/index.html.twig', array(
             'profile_data' => $profileData,
@@ -121,17 +131,23 @@ class MainController extends AbstractController
     public function profile(Connection $conn, $profile, $profileName)
     {
         $profileUrl = "/".$profile."/".$profileName; // url of the main profile in CMS DB
+
+        $profileLang = "uk";
+
         $profileNode = $conn->fetchAssoc("SELECT source FROM url_alias WHERE alias =  '".$profileUrl."'");
+
         $profileId = str_replace('/node/', "", $profileNode['source']); // id of the profile in CMS DB
 
-        $queryProfileMaterialsTypeCount = $conn->fetchAll("SELECT bundle, COUNT(*) as count FROM node__field_owner WHERE field_owner_target_id = '".$profileId."' AND langcode = 'uk' GROUP BY bundle ");
+        $queryProfileMaterialsTypeCount = $conn->fetchAll("SELECT bundle, COUNT(*) as count FROM node__field_owner WHERE field_owner_target_id = ?
+            AND langcode = ?
+            GROUP BY bundle ",
+            array($profileId, $profileLang)
+        );
 
         $profileMaterialsTypeCount = array();
         foreach ($queryProfileMaterialsTypeCount as $type) {
             $profileMaterialsTypeCount[$type['bundle']] = $type['count'];
         }
-
-        $profileLang = "uk";
 
         $profileData = $conn->fetchAssoc('SELECT
          node_field_data.title AS title,
@@ -158,31 +174,32 @@ class MainController extends AbstractController
          file_managed.uri AS image_uri
          FROM node_field_data
          LEFT JOIN node__body
-         ON node_field_data.nid = node__body.entity_id AND node__body.langcode = "'.$profileLang.'"
+         ON node_field_data.nid = node__body.entity_id AND node__body.langcode = ?
          LEFT JOIN node__field_contact
-         ON node_field_data.nid = node__field_contact.entity_id AND node__field_contact.langcode = "'.$profileLang.'"
+         ON node_field_data.nid = node__field_contact.entity_id AND node__field_contact.langcode = ?
          LEFT JOIN node__field_facebook
-         ON node_field_data.nid = node__field_facebook.entity_id AND node__field_facebook.langcode = "'.$profileLang.'"
+         ON node_field_data.nid = node__field_facebook.entity_id AND node__field_facebook.langcode = ?
          LEFT JOIN node__field_twitter
-         ON node_field_data.nid = node__field_twitter.entity_id AND node__field_twitter.langcode = "'.$profileLang.'"
+         ON node_field_data.nid = node__field_twitter.entity_id AND node__field_twitter.langcode = ?
          LEFT JOIN node__field_youtube
-         ON node_field_data.nid = node__field_youtube.entity_id AND node__field_youtube.langcode = "'.$profileLang.'"
+         ON node_field_data.nid = node__field_youtube.entity_id AND node__field_youtube.langcode = ?
          LEFT JOIN node__field_instagram
-         ON node_field_data.nid = node__field_instagram.entity_id AND node__field_instagram.langcode = "'.$profileLang.'"
+         ON node_field_data.nid = node__field_instagram.entity_id AND node__field_instagram.langcode = ?
          LEFT JOIN node__field_github
-         ON node_field_data.nid = node__field_github.entity_id AND node__field_github.langcode = "'.$profileLang.'"
+         ON node_field_data.nid = node__field_github.entity_id AND node__field_github.langcode = ?
          LEFT JOIN node__field_website
-         ON node_field_data.nid = node__field_website.entity_id AND node__field_website.langcode = "'.$profileLang.'"
+         ON node_field_data.nid = node__field_website.entity_id AND node__field_website.langcode = ?
          LEFT JOIN node__field_text_color
          ON node_field_data.nid = node__field_text_color.entity_id
          LEFT JOIN node__field_image
-         ON node_field_data.nid = node__field_image.entity_id AND node__field_image.langcode = "'.$profileLang.'"
+         ON node_field_data.nid = node__field_image.entity_id AND node__field_image.langcode = ?
          LEFT JOIN file_managed
          ON node__field_image.field_image_target_id = file_managed.fid
 
          WHERE node_field_data.nid = ?
-         AND node_field_data.langcode = ?
-         ', array($profileId, $profileLang));
+         AND node_field_data.langcode = ?',
+         array($profileLang, $profileLang, $profileLang, $profileLang, $profileLang, $profileLang, $profileLang, $profileLang, $profileLang, $profileId, $profileLang)
+        );
 
         $profileBg = $conn->fetchAssoc('SELECT
          node__field_background.field_background_target_id AS image_id,
@@ -191,8 +208,10 @@ class MainController extends AbstractController
          FROM node__field_background
          LEFT JOIN file_managed
          ON node__field_background.field_background_target_id = file_managed.fid
-         WHERE node__field_background.entity_id = "'.$profileId.'"
-         AND node__field_background.langcode = "uk"');
+         WHERE node__field_background.entity_id = ?
+         AND node__field_background.langcode = ?',
+         array($profileId, $profileLang)         
+        );
 
         $profileSlide = $conn->fetchAll('SELECT DISTINCT
          node__field_slide.field_slide_target_id AS slide_id,
@@ -204,9 +223,11 @@ class MainController extends AbstractController
          FROM node__field_slide
          LEFT JOIN file_managed
          ON node__field_slide.field_slide_target_id = file_managed.fid
-         WHERE node__field_slide.entity_id = "'.$profileId.'"
-         AND node__field_slide.langcode = "uk"
-         ORDER BY delta ASC');
+         WHERE node__field_slide.entity_id = ?
+         AND node__field_slide.langcode = ?
+         ORDER BY delta ASC',
+         array($profileId, $profileLang)
+        );
 
        //var_dump($profileMaterialsTypeCount);
        //var_dump($profileData);
