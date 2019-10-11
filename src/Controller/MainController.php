@@ -115,13 +115,38 @@ class MainController extends AbstractController
          ORDER BY delta ASC',
          array($profileId, $profileLang)
         );
+        
+        $profileFeatures = $conn->fetchAll('SELECT DISTINCT
+         node_field_data.title AS title,
+         node_field_data.nid AS id,
+         node_field_data.langcode AS langcode,
+         node__body.body_value AS body_value,
+         node__body.body_summary AS body_summary,
+         node__field_image.field_image_title AS image_title,
+         node__field_image.field_image_alt AS image_alt,
+         file_managed.uri AS image_uri
+         FROM node__field_owner
+         LEFT JOIN node_field_data
+         ON node_field_data.nid = node__field_owner.entity_id AND node_field_data.langcode = ? AND node_field_data.status = 1 AND  node_field_data.type = "feature"
+         LEFT JOIN node__body
+         ON node__body.entity_id = node_field_data.nid AND node__body.langcode = ?
+         LEFT JOIN node__field_image
+         ON node__field_image.entity_id = node_field_data.nid AND node__field_image.langcode = ?
+         LEFT JOIN file_managed
+         ON node__field_image.field_image_target_id = file_managed.fid
 
+         WHERE node__field_owner.field_owner_target_id = ?
+         LIMIT 6',
+         array($profileLang, $profileLang, $profileLang, $profileId)
+        );
+        
          return $this->render('test/index.html.twig', array(
             'profile_data' => $profileData,
             'profile_url' => $profileUrl,
             'profile_slide' => $profileSlide,
             'profile_background' => $profileBg,
             'profile_materials_type_count' => $profileMaterialsTypeCount,
+            'profile_features' => $profileFeatures,
         ));
     }
 
@@ -228,16 +253,42 @@ class MainController extends AbstractController
          ORDER BY delta ASC',
          array($profileId, $profileLang)
         );
+        
+        $profileFeatures = $conn->fetchAll('SELECT DISTINCT
+         node_field_data.title AS title,
+         node_field_data.nid AS id,
+         node_field_data.langcode AS langcode,
+         node__body.body_value AS body_value,
+         node__body.body_summary AS body_summary,
+         node__field_image.field_image_title AS image_title,
+         node__field_image.field_image_alt AS image_alt,
+         file_managed.uri AS image_uri
+         FROM node__field_owner
+         LEFT JOIN node_field_data
+         ON node_field_data.nid = node__field_owner.entity_id AND node_field_data.langcode = ? AND node_field_data.status = 1 AND  node_field_data.type = "feature"
+         LEFT JOIN node__body
+         ON node__body.entity_id = node_field_data.nid AND node__body.langcode = ?
+         LEFT JOIN node__field_image
+         ON node__field_image.entity_id = node_field_data.nid AND node__field_image.langcode = ?
+         LEFT JOIN file_managed
+         ON node__field_image.field_image_target_id = file_managed.fid
+
+         WHERE node__field_owner.field_owner_target_id = ?
+         LIMIT 6',
+         array($profileLang, $profileLang, $profileLang, $profileId)
+        );
 
        //var_dump($profileMaterialsTypeCount);
        //var_dump($profileData);
-
+       //var_dump($profileFeatures);
+        
         return $this->render('test/index.html.twig', array(
             'profile_data' => $profileData,
             'profile_url' => $profileUrl,
             'profile_slide' => $profileSlide,
             'profile_background' => $profileBg,
             'profile_materials_type_count' => $profileMaterialsTypeCount,
+            'profile_features' => $profileFeatures,
         ));
     }
 }
