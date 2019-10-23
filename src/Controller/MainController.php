@@ -113,7 +113,7 @@ class MainController extends AbstractController
          array($profileId, $profileLang)         
         );
 
-    // Select profile welcom slides
+    // Select profile welcome slides
 
         $profileSlide = $conn->fetchAll('SELECT DISTINCT
          node__field_slide.field_slide_target_id AS slide_id,
